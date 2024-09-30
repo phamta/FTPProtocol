@@ -102,8 +102,6 @@ public class test extends JFrame {
 		scrollPane_listfile.setBounds(0, 30, 685, 275);
 		contentPane.add(scrollPane_listfile);
 		
-		System.out.println("Thu");
-
 		panel_listfile = new JPanel();
 //		panel_listfile.setBounds(0, 30, 685, 270);
 		scrollPane_listfile.setViewportView(panel_listfile);
