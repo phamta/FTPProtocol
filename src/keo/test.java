@@ -60,6 +60,7 @@ public class test extends JFrame {
 
 	private static String server = "10.10.29.165";
 	private static String user = "giangvien-ftp";
+	
 
 //	private static String server = "10.10.56.198";
 //	private static String user = "home-ftp";
@@ -100,6 +101,8 @@ public class test extends JFrame {
 		scrollPane_listfile.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane_listfile.setBounds(0, 30, 685, 275);
 		contentPane.add(scrollPane_listfile);
+		
+		System.out.println("Thu");
 
 		panel_listfile = new JPanel();
 //		panel_listfile.setBounds(0, 30, 685, 270);
