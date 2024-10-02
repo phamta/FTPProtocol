@@ -20,6 +20,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Stack;
@@ -39,6 +40,8 @@ import javax.swing.filechooser.FileSystemView;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
+import org.apache.commons.net.ftp.FTPReply;
+
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
@@ -58,12 +61,12 @@ public class test extends JFrame {
 //	private static String server = "192.168.1.8";
 //	private static String user = "nha-ftp";
 
-	private static String server = "10.10.29.165";
-	private static String user = "giangvien-ftp";
+//	private static String server = "10.10.29.165";
+//	private static String user = "giangvien-ftp";
 	
 
-//	private static String server = "10.10.56.198";
-//	private static String user = "home-ftp";
+	private static String server;
+	private static String user = "home-ftp";
 	private int port = 21;
 	private String pass = "12345678";
 
@@ -73,12 +76,14 @@ public class test extends JFrame {
 	private JButton button_back; // do back to previous folder
 	private Stack<FTPFile> folderHistory; // save history open folder
 	private JScrollPane scrollPane_listfile;
+	
+	private List<FTPFile> list_filechoose;
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					test frame = new test();
+					test frame = new test(server);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -87,7 +92,7 @@ public class test extends JFrame {
 		});
 	}
 
-	public test() {
+	public test(String server) {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 700, 352);
 		contentPane = new JPanel();
@@ -125,17 +130,24 @@ public class test extends JFrame {
 
 		folderHistory = new Stack<FTPFile>();
 
+		test.server = server;
 		ftpClient = new FTPClient();
 		ftpClient.setControlEncoding("UTF-8");
 		try {
 			ftpClient.connect(server, port);
+//			int replyCode = ftpClient.getReplyCode();
+//		    if (!FTPReply.isPositiveCompletion(replyCode)) {
+//				JOptionPane.showMessageDialog(null, "Không thể đăng nhập vào FTP server.");
+//		        return;
+//		    }
+			
 			boolean login = ftpClient.login(user, pass);
 
 			if (login) {
 				FTPFile[] files = ftpClient.listFiles();
 				display(files);
 			} else {
-				System.out.println("Không thể đăng nhập vào FTP server.");
+				JOptionPane.showMessageDialog(null, "Không thể đăng nhập vào FTP server.");
 			}
 		} catch (SocketException e) {
 			e.printStackTrace();
@@ -201,6 +213,8 @@ public class test extends JFrame {
 				}
 			}
 		});
+		
+		list_filechoose = new ArrayList<FTPFile>();
 
 		addWindowListener(new WindowAdapter() {
 			@Override
@@ -476,8 +490,10 @@ public class test extends JFrame {
 				} else {
 					if (!currentChoice) {
 						panel.setBackground(new Color(80, 80, 80));
+						list_filechoose.add(file);
 					} else {
 						panel.setBackground(contentPane.getBackground());
+						list_filechoose.remove(file);
 					}
 
 					panel.putClientProperty("choice", !currentChoice);
@@ -570,25 +586,19 @@ public class test extends JFrame {
 		ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
 
 		try (FileInputStream fis = new FileInputStream(localFile)) {
-			boolean success = ftpClient.storeFile(localFile.getName(), fis);
-			if (success) {
-				JOptionPane.showMessageDialog(null, "File uploaded successfully!");
-			} else {
-				JOptionPane.showMessageDialog(null, "Failed to upload file.", "Error", JOptionPane.ERROR_MESSAGE);
-			}
+			ftpClient.storeFile(localFile.getName(), fis);
+//			if (success) {
+//				JOptionPane.showMessageDialog(null, "File uploaded successfully!");
+//			} else {
+//				JOptionPane.showMessageDialog(null, "Failed to upload file.", "Error", JOptionPane.ERROR_MESSAGE);
+//			}
 		}
 	}
 
 	private void addFolderToFTP(String remotePath, File localFolder) throws IOException {
 		ftpClient.changeWorkingDirectory(remotePath);
 
-		boolean created = ftpClient.makeDirectory(localFolder.getName());
-		if (created) {
-			JOptionPane.showMessageDialog(null, "Folder created successfully!");
-		} else {
-			JOptionPane.showMessageDialog(null, "Failed to create folder.", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
+		ftpClient.makeDirectory(localFolder.getName());
 
 		File[] files = localFolder.listFiles();
 		if (files != null) {
