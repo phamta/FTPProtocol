@@ -16,7 +16,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -34,16 +33,15 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileSystemView;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
-import org.apache.commons.net.ftp.FTPReply;
-
-import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
 
 //import demo.FTPClientDemo;
 
@@ -63,7 +61,6 @@ public class test extends JFrame {
 
 //	private static String server = "10.10.29.165";
 //	private static String user = "giangvien-ftp";
-	
 
 	private static String server;
 	private static String user = "home-ftp";
@@ -76,7 +73,7 @@ public class test extends JFrame {
 	private JButton button_back; // do back to previous folder
 	private Stack<FTPFile> folderHistory; // save history open folder
 	private JScrollPane scrollPane_listfile;
-	
+
 	private List<FTPFile> list_filechoose;
 
 	public static void main(String[] args) {
@@ -106,7 +103,7 @@ public class test extends JFrame {
 		scrollPane_listfile.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane_listfile.setBounds(0, 30, 685, 275);
 		contentPane.add(scrollPane_listfile);
-		
+
 		panel_listfile = new JPanel();
 //		panel_listfile.setBounds(0, 30, 685, 270);
 		scrollPane_listfile.setViewportView(panel_listfile);
@@ -132,7 +129,7 @@ public class test extends JFrame {
 
 		test.server = server;
 		ftpClient = new FTPClient();
-		ftpClient.setControlEncoding("UTF-8");
+//		ftpClient.setControlEncoding("UTF-8");
 		try {
 			ftpClient.connect(server, port);
 //			int replyCode = ftpClient.getReplyCode();
@@ -140,12 +137,11 @@ public class test extends JFrame {
 //				JOptionPane.showMessageDialog(null, "Không thể đăng nhập vào FTP server.");
 //		        return;
 //		    }
-			
+
 			boolean login = ftpClient.login(user, pass);
 
 			if (login) {
-				FTPFile[] files = ftpClient.listFiles();
-				display(files);
+				reload();
 			} else {
 				JOptionPane.showMessageDialog(null, "Không thể đăng nhập vào FTP server.");
 			}
@@ -191,8 +187,7 @@ public class test extends JFrame {
 			try {
 				boolean success = ftpClient.makeDirectory(folderName);
 				if (success) {
-					FTPFile[] listFile = ftpClient.listFiles();
-					display(listFile);
+					reload();
 					JOptionPane.showMessageDialog(panel_listfile, "Tạo thư mục thành công: " + folderName);
 				} else {
 					JOptionPane.showMessageDialog(panel_listfile, "Tạo thư mục thất bại: " + folderName, "Lỗi",
@@ -213,7 +208,7 @@ public class test extends JFrame {
 				}
 			}
 		});
-		
+
 		list_filechoose = new ArrayList<FTPFile>();
 
 		addWindowListener(new WindowAdapter() {
@@ -234,7 +229,7 @@ public class test extends JFrame {
 	}
 
 	private JPanel createPanelFile(FTPFile file, int x, int y) {
-		ftpClient.setControlEncoding("UTF-8");
+//		ftpClient.setControlEncoding("UTF-8");
 
 		JPanel panel = new JPanel();
 		panel.setBounds(x, y, 650, 20);
@@ -251,12 +246,14 @@ public class test extends JFrame {
 
 		String fileName = null;
 		try {
-			fileName = new String(file.getName().getBytes("ISO-8859-1"), "UTF-8");
+			fileName = new String(file.getName().getBytes("UTF-8"), "UTF-8");
+//			fileName = file.getName();
+			System.out.println(fileName);
 			int i = fileName.lastIndexOf('.');
 			if (i > 0) {
 				extension = fileName.substring(i + 1).toLowerCase();
 			}
-		} catch (UnsupportedEncodingException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
@@ -334,16 +331,25 @@ public class test extends JFrame {
 //		System.out.println(icon.getIconHeight() + " " + icon.getIconWidth());
 
 		// Tiếp tục phần còn lại của hàm để hiển thị tên file và thông tin khác
-		Font font = new Font("Tahoma", Font.PLAIN, 12);
+		Font font = new Font("Arial", Font.PLAIN, 12);
 
+		System.out.println(fileName);
 		JLabel label_filename = new JLabel(fileName);
 		label_filename.setBounds(padding_left + 25, padding_top, 250, 20); // Adjust bounds
 		label_filename.setForeground(Color.white);
 		label_filename.setFont(font);
 		panel.add(label_filename);
 
+//		JTextField tf_filename = new JTextField(fileName);
+//		tf_filename.setBounds(padding_left + 25, padding_top, 250, 20); // Adjust bounds
+//		tf_filename.setForeground(Color.white); // Thiết lập màu chữ
+//		tf_filename.setFont(font); // Thiết lập font chữ
+//		tf_filename.setBackground(Color.black); // Thiết lập màu nền (nếu cần)
+//		tf_filename.setEditable(false); // Nếu muốn JTextField chỉ hiển thị như JLabel (không cho chỉnh sửa)
+//		panel.add(tf_filename);
+
 		JLabel label_type = new JLabel(extension);
-		label_type.setFont(new Font("Tahoma", Font.PLAIN, 12));
+		label_type.setFont(font);
 		label_type.setBounds(label_filename.getX() + label_filename.getWidth() + 5, padding_top, 80, 20);
 		label_type.setForeground(Color.white);
 		panel.add(label_type);
@@ -363,28 +369,42 @@ public class test extends JFrame {
 
 		JPopupMenu popupMenu = new JPopupMenu(); // pop up menu when right click on file
 		if (file.isDirectory()) {
-			JMenuItem uploadItem = new JMenuItem("Upload");
-			popupMenu.add(uploadItem);
-			uploadItem.addActionListener(e -> {
-				JFileChooser fileChooser = new JFileChooser();
-				fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		    JMenuItem uploadItem = new JMenuItem("Upload");
+		    popupMenu.add(uploadItem);
+		    uploadItem.addActionListener(e -> {
+		        JFileChooser fileChooser = new JFileChooser();
 
-				int result = fileChooser.showOpenDialog(panel);
-				if (result == JFileChooser.APPROVE_OPTION) {
-					File selectedFile = fileChooser.getSelectedFile();
-					try {
-						if (selectedFile.isDirectory()) {
-							addFolderToFTP(file.getName(), selectedFile);
-						} else {
-							addFileToFTP(file.getName(), selectedFile);
-						}
-					} catch (IOException ex) {
-						ex.printStackTrace();
-						JOptionPane.showMessageDialog(panel, "Failed to upload!", "Error", JOptionPane.ERROR_MESSAGE);
-					}
-				}
-			});
+		        // Cho phép chọn nhiều file và thư mục
+		        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		        fileChooser.setMultiSelectionEnabled(true);
+
+		        int result = fileChooser.showOpenDialog(panel);
+		        if (result == JFileChooser.APPROVE_OPTION) {
+		            // Lấy các file hoặc thư mục đã chọn
+		            File[] selectedFiles = fileChooser.getSelectedFiles();
+
+		            // Giả sử `file` là một đối tượng FTPFile
+		            String currentFolder = file.getName(); // Tên thư mục FTP hiện tại
+		            String currentFolderPath = "/ftp/" + currentFolder; // Đường dẫn FTP (thay đổi tùy cách bạn tổ chức đường dẫn trên FTP)
+
+		            for (File selectedFile : selectedFiles) {
+		                try {
+		                    if (selectedFile.isDirectory()) {
+		                        // Thêm thư mục vào thư mục đang chọn trên FTP
+		                        addFolderToFTP(file.getName(), selectedFile);
+		                    } else {
+		                        // Thêm file vào thư mục đang chọn trên FTP
+		                        addFileToFTP(file.getName(), selectedFile);
+		                    }
+		                } catch (IOException ex) {
+		                    ex.printStackTrace();
+		                    JOptionPane.showMessageDialog(panel, "Failed to upload: " + selectedFile.getName(), "Error", JOptionPane.ERROR_MESSAGE);
+		                }
+		            }
+		        }
+		    });
 		}
+
 
 		JMenuItem downloadItem = new JMenuItem("Download");
 		JMenuItem deleteItem = new JMenuItem("Delete");
@@ -395,10 +415,8 @@ public class test extends JFrame {
 		popupMenu.add(renameItem);
 
 		downloadItem.addActionListener(e -> {
-			// Thư mục mặc định nơi lưu file tải về
 			String defaultDownloadFolderPath = System.getProperty("user.home") + "/Downloads";
 
-			// Tạo thư mục nếu chưa tồn tại
 			File localFolder = new File(defaultDownloadFolderPath);
 			if (!localFolder.exists()) {
 				localFolder.mkdirs();
@@ -426,29 +444,35 @@ public class test extends JFrame {
 
 		deleteItem.addActionListener(e -> {
 			int confirm = JOptionPane.showConfirmDialog(panel,
-					"Are you sure you want to delete " + file.getName() + "?", "Delete Confirmation",
+					"Are you sure you want to delete " + file.getName() + " file?", "Delete Confirmation",
 					JOptionPane.YES_NO_OPTION);
 
 			if (confirm == JOptionPane.YES_OPTION) {
-				try {
-					if (file.isDirectory()) {
-						deleteFolder(file, "");
-						JOptionPane.showMessageDialog(panel, "Thư mục " + file.getName() + " đã được xóa thành công!");
-					} else {
-						boolean success = ftpClient.deleteFile(file.getName());
-						if (success) {
-							FTPFile[] listFile = ftpClient.listFiles();
-							display(listFile);
-							JOptionPane.showMessageDialog(panel, "Tệp " + file.getName() + " đã được xóa thành công!");
-						} else {
-							JOptionPane.showMessageDialog(panel, "Xóa tệp thất bại: " + file.getName());
-						}
+//				for(FTPFile ftp_file: list_filechoose) {
+//					if(ftp_file.isDirectory()) {
+//						deleteFolder(ftp_file, "");
+//					}
+//					else {
+//						try {
+//							ftpClient.deleteFile(ftp_file.getName());
+//						} catch (IOException e_io) {
+//							// TODO Auto-generated catch block
+//							e_io.printStackTrace();
+//						}
+//					}
+//				}
+//				list_filechoose.clear();
+				if (file.isDirectory()) {
+					deleteFolder(file, "");
+				} else {
+					try {
+						ftpClient.deleteFile(file.getName());
+					} catch (IOException e_io) {
+						// TODO Auto-generated catch block
+						e_io.printStackTrace();
 					}
-				} catch (IOException ex) {
-					ex.printStackTrace();
-					JOptionPane.showMessageDialog(panel, "Đã xảy ra lỗi khi xóa: " + file.getName(), "Lỗi",
-							JOptionPane.ERROR_MESSAGE);
 				}
+				reload();
 			}
 		});
 
@@ -513,6 +537,8 @@ public class test extends JFrame {
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				if (e.isPopupTrigger()) {
+//					list_filechoose.add(file);
+					System.out.println("So file da chon " + list_filechoose.size());
 					popupMenu.show(panel, e.getX(), e.getY());
 				}
 			}
@@ -521,7 +547,15 @@ public class test extends JFrame {
 		return panel;
 	}
 
-	private void display(FTPFile[] files) {
+	private void reload() {
+		FTPFile[] files = null;
+		try {
+			files = ftpClient.listFiles();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		int x = 10;
 		int y = 10;
 		int padding = 10;
@@ -555,9 +589,7 @@ public class test extends JFrame {
 			folderHistory.peek().setName(currentPath);
 
 			ftpClient.changeWorkingDirectory(folder.getName());
-			FTPFile[] files = ftpClient.listFiles();
-
-			display(files);
+			reload();
 		} catch (IOException ex) {
 			ex.printStackTrace();
 			JOptionPane.showMessageDialog(null, "Không thể mở thư mục!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -570,14 +602,14 @@ public class test extends JFrame {
 			String previousPath = previousFolder.getName();
 
 			ftpClient.changeWorkingDirectory(previousPath);
-			FTPFile[] files = ftpClient.listFiles();
-
-			display(files);
+//			FTPFile[] files = ftpClient.listFiles();
+//			display(files);
 		} else {
 			ftpClient.changeToParentDirectory();
-			FTPFile[] files = ftpClient.listFiles();
-			display(files);
+//			FTPFile[] files = ftpClient.listFiles();
+//			display(files);
 		}
+		reload();
 	}
 
 	private void addFileToFTP(String remotePath, File localFile) throws IOException {
@@ -596,23 +628,35 @@ public class test extends JFrame {
 	}
 
 	private void addFolderToFTP(String remotePath, File localFolder) throws IOException {
+		// Đổi thư mục làm việc trên FTP tới remotePath
 		ftpClient.changeWorkingDirectory(remotePath);
 
+		// Tạo thư mục chính trên FTP
 		ftpClient.makeDirectory(localFolder.getName());
 
+		// Đổi thư mục làm việc trên FTP sang thư mục mới tạo
+		ftpClient.changeWorkingDirectory(localFolder.getName());
+
+		// Lấy tất cả các file và thư mục con trong localFolder
 		File[] files = localFolder.listFiles();
 		if (files != null) {
 			for (File file : files) {
 				if (file.isDirectory()) {
-					addFolderToFTP(localFolder.getName(), file);
+					// Đệ quy để thêm các thư mục con
+					addFolderToFTP(ftpClient.printWorkingDirectory(), file);
 				} else {
-					addFileToFTP(localFolder.getName(), file);
+					// Thêm các file vào FTP
+					addFileToFTP(ftpClient.printWorkingDirectory(), file);
 				}
 			}
 		}
+
+		// Trở lại thư mục cha
+		ftpClient.changeToParentDirectory();
 	}
 
 	private void deleteFolder(FTPFile folder, String parentPath) {
+
 		try {
 			String currentPath = parentPath + "/" + folder.getName();
 
@@ -626,7 +670,7 @@ public class test extends JFrame {
 					} else {
 						boolean deletedFile = ftpClient.deleteFile(filePath);
 						if (!deletedFile) {
-							JOptionPane.showMessageDialog(null, "Không thể xóa file: " + subFile.getName(), "Error",
+							JOptionPane.showMessageDialog(null, "Không thể xóa file: b" + subFile.getName(), "Error",
 									JOptionPane.ERROR_MESSAGE);
 						}
 					}
@@ -641,14 +685,6 @@ public class test extends JFrame {
 		} catch (IOException e) {
 			e.printStackTrace();
 			JOptionPane.showMessageDialog(null, "Lỗi khi xóa thư mục!", "Error", JOptionPane.ERROR_MESSAGE);
-		}
-
-		FTPFile[] listFile;
-		try {
-			listFile = ftpClient.listFiles();
-			display(listFile);
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 	}
 

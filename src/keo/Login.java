@@ -76,7 +76,7 @@ public class Login extends JFrame {
         lblPassword.setBounds(55, 100, 100, 30);
         contentPane.add(lblPassword);
         
-        tf_username = new JTextField();
+        tf_username = new JTextField("tanvan");
         tf_username.setBounds(155, 60, 200, 25);
         contentPane.add(tf_username);
         tf_username.setColumns(10);
@@ -86,7 +86,7 @@ public class Login extends JFrame {
         button_login.setBounds(255, 190, 100, 30);
         contentPane.add(button_login);
         
-        tf_password = new JPasswordField();
+        tf_password = new JPasswordField("123");
         tf_password.setBounds(155, 105, 200, 25);
         contentPane.add(tf_password);
         
@@ -95,7 +95,7 @@ public class Login extends JFrame {
         lblIpServer.setBounds(55, 145, 100, 30);
         contentPane.add(lblIpServer);
         
-        tf_ip = new JTextField();
+        tf_ip = new JTextField("10.10.57.123");
         tf_ip.setColumns(10);
         tf_ip.setBounds(155, 150, 200, 25);
         contentPane.add(tf_ip);
